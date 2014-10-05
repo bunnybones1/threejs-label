@@ -13,7 +13,7 @@
       "type": "MIT"
     }
   ],
-  "main": "Gruntfile.js",
+  "main": "src/core/index.js",
   "engines": {
     "node": ">= 0.8.0"
   },
