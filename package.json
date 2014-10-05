@@ -1,0 +1,44 @@
+{
+  "name": "threejs-label",
+  "description": "threejs-label",
+  "version": "0.0.1",
+  "homepage": "",
+  "author": "Tomasz Dysinski (http://www.bunnybones.com)",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
+  "main": "Gruntfile.js",
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "dependencies": {
+    "globalizejs": "0.0.1",
+    "grunt-open": "^0.2.3",
+    "lodash": "^2.4.1",
+    "signals": "^1.0.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-connect": "~0.3.0",
+    "grunt-contrib-livereload": "~0.1.2",
+    "grunt-contrib-watch": "~0.4.4",
+    "grunt-watchify": "~0.0.3"
+  },
+  "peerDependencies": {
+    "grunt": "~0.4.1"
+  },
+  "keywords": [],
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "ISC"
+}
