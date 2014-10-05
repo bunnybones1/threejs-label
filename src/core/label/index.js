@@ -18,7 +18,7 @@ function Label(text, properties, material, camera, bg) {
 
 		material: 0,
 		extrudeMaterial: 1
-	}, {} || properties);
+	}, properties || {});
 
 
 	var textGeo = new THREE.TextGeometry( text, properties);
