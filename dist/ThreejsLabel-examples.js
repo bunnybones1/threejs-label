@@ -6817,14 +6817,19 @@ function SampleExample() {
 	console.log("Sample Example!");
 	//all you really need
 	var view = new View({
-		camera: new THREE.OrthographicCamera(-10, 10, 10, -10, -1000, 1000)
+		// camera: new THREE.OrthographicCamera(-10, 10, 10, -10, -1000, 1000)
 	});
 
 	//add fog
 	view.scene.fog = new THREE.FogExp2( 0x3f1f00, 0.1 );
 
 
-	var label = new Label('Hello World!', undefined, undefined, view.camera, true);
+	var label = new Label(
+		'Hello World!', 
+		{
+			bg: true
+		}
+	);
 	view.scene.add(label);
 
 	//now let's play with some objects!

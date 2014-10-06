@@ -64,7 +64,6 @@ View.prototype = {
 		this.onResize = new signals.Signal();
 		this.setSize = this.setSize.bind(this);
 		EventUtils.addEvent(window, "resize", function(event) {
-	
 			this.onResize.dispatch(window.innerWidth, window.innerHeight);
 		}.bind(this));
 		this.onResize.add(this.setSize);

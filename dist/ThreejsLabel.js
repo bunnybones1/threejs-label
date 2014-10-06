@@ -46,6 +46,127 @@ var Events = {
 
 module.exports = Events;
 },{}],3:[function(require,module,exports){
+function CanvasGraph(props) {
+	this.addCanvasToDOMBody = this.addCanvasToDOMBody.bind(this);
+	this.animationFrame = this.animationFrame.bind(this);
+
+	props = props ? props : {};
+	this.width = props.width ? props.width : this.width;
+	this.height = props.height ? props.height : this.height;
+	this.colorBG = props.colorBG !== undefined ? props.colorBG : "#222222";
+	this.colorLine = props.colorLine !== undefined ? props.colorLine : "#FF2222";
+
+	this.lastTime = this.time = new Date;
+
+	this.canvas = this.createCanvas();
+	this.values = [];
+	this.setDOMRules();
+	this.animationFrame();
+
+	this.addValue(this, "fps", "red", "FPS");
+};
+CanvasGraph.prototype = {
+	canvasID: "graphCanvas",
+	width: 200,
+	height: 60,
+	range: {
+		top: 60,
+		bottom: 0
+	},
+	pixelsPerSecondScroll: 60,
+	scrollPosition: 0,
+	skipFrames: 0,
+	skipFramesCounter: 0,
+	createCanvas: function() {
+		var canvas = document.createElement("canvas");
+		canvas.id = this.canvasID;
+		canvas.width = this.width;
+		canvas.height = this.height;
+		this.context = canvas.getContext("2d");
+		this.context.fillStyle = this.colorBG;
+		this.context.fillRect(0, 0, this.width, this.height);
+		this.addCanvasToDOMBody(canvas);
+		return canvas;
+	},
+	clear: function() {
+
+	},
+	addCanvasToDOMBody: function(canvas) {
+		canvas = canvas || this.canvas;
+		if(document.body) {
+			
+			document.body.appendChild(canvas);
+		} else {
+			
+			setTimeout(this.addCanvasToDOMBody, 50);
+		}
+	},
+	setDOMRules: function(mode) {
+		var style = this.canvas.style;
+		style.position = "fixed";
+		style.left = "0px";
+		style.top = "0px";
+		style.width = this.width;
+		style.height = this.height;
+	},
+	animationFrame : function() {
+		if(this.skipFramesCounter < this.skipFrames) {
+			this.skipFramesCounter++;
+		} else {
+			this.render();
+			this.skipFramesCounter = 0;
+		}
+		if(!this._requestStop) requestAnimationFrame(this.animationFrame);
+	},
+	addValue: function(object, valueKey, colorString, name) {
+		this.values.push({
+			name: name,
+			object:object,
+			valueKey:valueKey,
+			color: colorString
+		})
+	},
+	render: function() {
+		this.lastTime = this.time;
+		this.time = new Date;
+		var deltaTime = this.time - this.lastTime;
+		this.fps = ~~(1000 / deltaTime)
+		var scrollPositionDelta = deltaTime * .001 * this.pixelsPerSecondScroll;
+		var scrollPositionLastInt = ~~this.scrollPosition;
+		this.scrollPosition += scrollPositionDelta;
+		var scrollPositionInt = ~~this.scrollPosition;
+		var scrollPositionDeltaInt = scrollPositionInt - scrollPositionLastInt;
+		if(scrollPositionDeltaInt < this.width) {
+			this.context.putImageData(
+				this.context.getImageData(scrollPositionDeltaInt, 0, this.width-scrollPositionDeltaInt, this.height),
+				0, 0
+			);
+		}
+		this.context.fillStyle = this.colorBG;
+		this.context.fillRect(
+			this.width - scrollPositionDeltaInt,
+			0,
+			scrollPositionDeltaInt,
+			this.height
+		);
+		this.context.globalCompositeOperation = "lighter";
+		for (var i = 0; i < this.values.length; i++) {
+			var val = this.values[i];
+
+			this.context.fillStyle = val.color;
+			this.context.fillRect(
+				this.width - scrollPositionDeltaInt,
+				this.height - val.object[val.valueKey],
+				scrollPositionDeltaInt,
+				1
+			);
+		}
+		this.context.globalCompositeOperation = "source-over";
+	}
+};
+
+module.exports = CanvasGraph;
+},{}],4:[function(require,module,exports){
 function FPS() {
 	this.lastTime = new Date;
 	this.animationFrame = this.animationFrame.bind(this);
@@ -80,7 +201,7 @@ FPS.prototype = {
 };
 
 module.exports = new FPS();
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var signals = require('signals');
 var FPS = require('./FPS');
 
@@ -134,7 +255,7 @@ PerformanceTweaker.prototype = {
 }
 
 module.exports = new PerformanceTweaker();
-},{"./FPS":3,"signals":5}],5:[function(require,module,exports){
+},{"./FPS":4,"signals":6}],6:[function(require,module,exports){
 /*jslint onevar:true, undef:true, newcap:true, regexp:true, bitwise:true, maxerr:50, indent:4, white:false, nomen:false, plusplus:false */
 /*global define:false, require:false, exports:false, module:false, signals:false */
 
@@ -581,127 +702,6 @@ module.exports = new PerformanceTweaker();
 
 }(this));
 
-},{}],6:[function(require,module,exports){
-function CanvasGraph(props) {
-	this.addCanvasToDOMBody = this.addCanvasToDOMBody.bind(this);
-	this.animationFrame = this.animationFrame.bind(this);
-
-	props = props ? props : {};
-	this.width = props.width ? props.width : this.width;
-	this.height = props.height ? props.height : this.height;
-	this.colorBG = props.colorBG !== undefined ? props.colorBG : "#222222";
-	this.colorLine = props.colorLine !== undefined ? props.colorLine : "#FF2222";
-
-	this.lastTime = this.time = new Date;
-
-	this.canvas = this.createCanvas();
-	this.values = [];
-	this.setDOMRules();
-	this.animationFrame();
-
-	this.addValue(this, "fps", "red", "FPS");
-};
-CanvasGraph.prototype = {
-	canvasID: "graphCanvas",
-	width: 200,
-	height: 60,
-	range: {
-		top: 60,
-		bottom: 0
-	},
-	pixelsPerSecondScroll: 60,
-	scrollPosition: 0,
-	skipFrames: 0,
-	skipFramesCounter: 0,
-	createCanvas: function() {
-		var canvas = document.createElement("canvas");
-		canvas.id = this.canvasID;
-		canvas.width = this.width;
-		canvas.height = this.height;
-		this.context = canvas.getContext("2d");
-		this.context.fillStyle = this.colorBG;
-		this.context.fillRect(0, 0, this.width, this.height);
-		this.addCanvasToDOMBody(canvas);
-		return canvas;
-	},
-	clear: function() {
-
-	},
-	addCanvasToDOMBody: function(canvas) {
-		canvas = canvas || this.canvas;
-		if(document.body) {
-			
-			document.body.appendChild(canvas);
-		} else {
-			
-			setTimeout(this.addCanvasToDOMBody, 50);
-		}
-	},
-	setDOMRules: function(mode) {
-		var style = this.canvas.style;
-		style.position = "fixed";
-		style.left = "0px";
-		style.top = "0px";
-		style.width = this.width;
-		style.height = this.height;
-	},
-	animationFrame : function() {
-		if(this.skipFramesCounter < this.skipFrames) {
-			this.skipFramesCounter++;
-		} else {
-			this.render();
-			this.skipFramesCounter = 0;
-		}
-		if(!this._requestStop) requestAnimationFrame(this.animationFrame);
-	},
-	addValue: function(object, valueKey, colorString, name) {
-		this.values.push({
-			name: name,
-			object:object,
-			valueKey:valueKey,
-			color: colorString
-		})
-	},
-	render: function() {
-		this.lastTime = this.time;
-		this.time = new Date;
-		var deltaTime = this.time - this.lastTime;
-		this.fps = ~~(1000 / deltaTime)
-		var scrollPositionDelta = deltaTime * .001 * this.pixelsPerSecondScroll;
-		var scrollPositionLastInt = ~~this.scrollPosition;
-		this.scrollPosition += scrollPositionDelta;
-		var scrollPositionInt = ~~this.scrollPosition;
-		var scrollPositionDeltaInt = scrollPositionInt - scrollPositionLastInt;
-		if(scrollPositionDeltaInt < this.width) {
-			this.context.putImageData(
-				this.context.getImageData(scrollPositionDeltaInt, 0, this.width-scrollPositionDeltaInt, this.height),
-				0, 0
-			);
-		}
-		this.context.fillStyle = this.colorBG;
-		this.context.fillRect(
-			this.width - scrollPositionDeltaInt,
-			0,
-			scrollPositionDeltaInt,
-			this.height
-		);
-		this.context.globalCompositeOperation = "lighter";
-		for (var i = 0; i < this.values.length; i++) {
-			var val = this.values[i];
-
-			this.context.fillStyle = val.color;
-			this.context.fillRect(
-				this.width - scrollPositionDeltaInt,
-				this.height - val.object[val.valueKey],
-				scrollPositionDeltaInt,
-				1
-			);
-		}
-		this.context.globalCompositeOperation = "source-over";
-	}
-};
-
-module.exports = CanvasGraph;
 },{}],7:[function(require,module,exports){
 var sphereRadius = .5;
 var sphereGeometry;
@@ -746,286 +746,87 @@ module.exports = {
 	MaterialTestFactory : require('./MaterialTestFactory'),
 	degToRad : require('./degToRad')
 }
-},{"./CanvasGraph":6,"./Events":2,"./FPS":3,"./MaterialTestFactory":7,"./PerformanceTweaker":4,"./URLParams":1,"./degToRad":9}],9:[function(require,module,exports){
+},{"./CanvasGraph":3,"./Events":2,"./FPS":4,"./MaterialTestFactory":7,"./PerformanceTweaker":5,"./URLParams":1,"./degToRad":9}],9:[function(require,module,exports){
 module.exports = function degToRad(deg) {
 	return deg / 180 * Math.PI;
 }
 },{}],10:[function(require,module,exports){
-var enums = {
-	FULLSCREEN : "fullscreen"
-}
-
-module.exports = enums;
-},{}],11:[function(require,module,exports){
-var signals = require('signals');
-
-/**
- * Manages render timing, pause and unpause
- * @param {View} view the view to manage
- */
-function RenderManager(view) {
-	
-	this.view = view;
-	this.skipFrames = 0;
-	this.skipFramesCounter = 0;
-	this.onEnterFrame = new signals.Signal();
-	this.onExitFrame = new signals.Signal();
-	this.renderLoop = this.renderLoop.bind(this);
-};
-
-RenderManager.prototype = {	
-	/**
-	 * a flag to request that the render loop stops next at the next frame
-	 * @type {Boolean}
-	 */
-	_requestStop: false,
-
-	/**
-	 * the repeating renderLoop calls itself with requestAnimationFrame to act as the render timer
-	 */
-	renderLoop : function() {
-		if(this.skipFramesCounter < this.skipFrames) {
-			this.skipFramesCounter++;
-		} else {
-			this.onEnterFrame.dispatch();
-			this.view.render();
-			this.onExitFrame.dispatch();
-			this.skipFramesCounter = 0;
-		}
-		if(!this._requestStop) requestAnimationFrame(this.renderLoop);
-	},
-
-	/**
-	 * start rendering
-	 */
-	start: function() {
-		this._requestStop = false;
-		requestAnimationFrame(this.renderLoop);
-	},
-
-	/**
-	 * stop rendering
-	 */
-	stop: function() {
-		this._requestStop = true;
-	}
-}
-
-module.exports = RenderManager;
-},{"signals":5}],12:[function(require,module,exports){
-var _renderer, stats, rendererStats;
-var RenderStats = function(renderer) {
-	_renderer = renderer;
-	stats = new Stats();
-	document.body.appendChild( stats.domElement );
-	stats.domElement.style['pointer-events'] = 'none'
-	stats.domElement.style['z-index'] = '1'
-	stats.domElement.style.position = 'absolute'
-
-	rendererStats = new THREEx.RendererStats();
-
-	rendererStats.domElement.style.position = 'absolute'
-	rendererStats.domElement.style.left = '0px'
-	rendererStats.domElement.style.bottom = '0px'
-	rendererStats.domElement.style['pointer-events'] = 'none'
-	rendererStats.domElement.style['z-index'] = '1'
-	document.body.appendChild( rendererStats.domElement );
-};
-
-var onEnterFrame = function() {
-	rendererStats.update(_renderer);
-	stats.begin();
-};
-
-var onExitFrame = function() {
-	stats.end();
-};
-
-RenderStats.prototype = {
-	onEnterFrame: onEnterFrame,
-	onExitFrame: onExitFrame
-}
-
-module.exports = RenderStats;
-},{}],13:[function(require,module,exports){
-module.exports = {
-	DOMMode : require('./DOMMode'),
-	RenderManager : require('./RenderManager'),
-	RenderStats : require('./RenderStats'),
-	View : require('./View')
-}
-},{"./DOMMode":10,"./RenderManager":11,"./RenderStats":12,"./View":14}],14:[function(require,module,exports){
-var DOMMode = require('./DOMMode');
-var EventUtils = require('../utils/Events');
-var signals = require('signals');
-var PerformanceTweaker = require('../utils/PerformanceTweaker');
 var _ = require('lodash');
-var RenderStats = require('./RenderStats');
-/**
- * View is the viewport canvas and the renderer
- * @param {Object} props an object of properties to override default dehaviours
- */
-function View(props) {
-	this.addCanvasContainerToDOMBody = this.addCanvasContainerToDOMBody.bind(this);
-	this.addCanvasToContainer = this.addCanvasToContainer.bind(this);
+function Label(text, properties) {
+	properties = _.assign({
+		height: 0,
+		size: .70,
+		hover: .30,
 
-	props = props || {};
-	this.scene = props.scene || new THREE.Scene();
-	props.rendererSettings = props.rendererSettings || {};
-	if(props.camera) {
-		this.camera = props.camera;
-	} else {
-		this.camera = new THREE.PerspectiveCamera();
-		this.scene.add(this.camera);
-		this.camera.position.z = 8.50;
-		this.camera.position.y = 8.0;
-		this.camera.lookAt(this.scene.position);
+		curveSegments: 0,
+
+		bevelThickness: .02,
+		bevelSize: .015,
+		bevelSegments: 3,
+		bevelEnabled: false,
+
+		font: "cranberry gin", // helvetiker, optimer, gentilis, droid sans, droid serif
+		weight: "normal", // normal bold
+		style: "normal", // normal italic
+
+		material: 0,
+		extrudeMaterial: 1
+	}, properties || {});
+
+
+	if(!properties.material) {
+		properties.material = new THREE.MeshBasicMaterial({
+			color: 0xffffff,
+			emissive: 0xffffff,
+			lights: false,
+			fog: false
+		});
 	}
-	this.autoStartRender = props.autoStartRender !== undefined ? props.autoStartRender : true;
-	this.canvasContainerID = props.canvasContainerID || "WebGLCanvasContainer";
-	this.canvasID = props.canvasID || "WebGLCanvas";
-	this.domMode = props.domMode || DOMMode.FULLSCREEN;
+
+	if(!properties.bgMaterial) {
+		properties.bgMaterial = new THREE.MeshBasicMaterial({
+			color: 0xffffff,
+			emissive: 0xffffff,
+			lights: false,
+			fog: false,
+			transparent: true,
+			opacity: 0.2
+		});
+	}
+
+	var textGeo = new THREE.TextGeometry( text, properties);
+
+	textGeo.computeBoundingBox();
+	textGeo.computeVertexNormals();
+	THREE.Mesh.call(this, textGeo, properties.material);
 	
-	//use provided canvas or make your own
-	this.canvasContainer = document.getElementById(this.canvasContainerID) || this.createCanvasContainer();
-	this.canvas = document.getElementById(this.canvasID) || this.createCanvas();
-	this.rendererSettings = _.merge({
-		canvas: this.canvas,
-		antialias: true,
-
-	}, props.rendererSettings);
-
-	if( props.renderer !== undefined)
-		this.renderer = props.renderer;
-	else 
-		this.renderer = new THREE.WebGLRenderer(this.rendererSettings);
-
-	if(this.rendererSettings.autoClear === false) this.renderer.autoClear = false;
-
-	this.renderManager = new(require('./RenderManager'))(this);
-	if(this.autoStartRender) this.renderManager.start();
-
-	PerformanceTweaker.onChange.add(this.onPerformanceTweakerChangeResolution.bind(this));
-
-	this.setupResizing();
-
-	if(props.stats) {
-		this.stats = new RenderStats(this.renderer);
-		this.renderManager.onEnterFrame.add(this.stats.onEnterFrame);
-		this.renderManager.onExitFrame.add(this.stats.onExitFrame);
+	if(properties.bg === true) {
+		properties.bg = new THREE.Mesh(planeGeom, properties.bgMaterial);
+		this.add(properties.bg);
 	}
+	if(properties.bg) {
+		var textBounds = textGeo.boundingBox;
+		var planeWidth = textBounds.max.x - textBounds.min.x;
+		var planeHeight = textBounds.max.y - textBounds.min.y;
+		var planeGeom = new THREE.PlaneGeometry(planeWidth, planeHeight);
+		properties.bg.position.x = textBounds.min.x + planeWidth * .5;
+		properties.bg.position.y = textBounds.min.y + planeHeight * .5;
+	}
+	
+
+
+	var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
+
+
+	this.position.x = centerOffset;
+	this.position.z = 0;
+
 }
 
-View.prototype = {
-	setupResizing: function() {
-		this.onResize = new signals.Signal();
-		this.setSize = this.setSize.bind(this);
-		EventUtils.addEvent(window, "resize", function(event) {
-	
-			this.onResize.dispatch(window.innerWidth, window.innerHeight);
-		}.bind(this));
-		this.onResize.add(this.setSize);
-		this.setSize(window.innerWidth, window.innerHeight);
+Label.prototype = Object.create(THREE.Mesh.prototype);
 
-	},
-	/**
-	 * Renders the scene to the canvas using the renderer
-	 * @return {[type]} [description]
-	 */
-	render: function () {
-		PerformanceTweaker.update();
-		this.renderer.render(this.scene, this.camera);
-	},
-
-	/**
-	 * Creates the canvas DOM Element and appends it to the document body
-	 * @return {CanvasElement} The newly created canvas element.
-	 */
-	createCanvasContainer: function() {
-		var canvasContainer = document.createElement("div");
-		canvasContainer.id = this.canvasContainerID;
-		canvasContainer.width = window.innerWidth;
-		canvasContainer.height = window.innerHeight;
-		this.addCanvasContainerToDOMBody(canvasContainer);
-		this.setDOMMode(canvasContainer, this.domMode);
-		return canvasContainer;
-	},
-
-	createCanvas: function() {
-		var canvas = document.createElement("canvas");
-		canvas.id = this.canvasID;
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
-		this.addCanvasToContainer(canvas);
-		this.setDOMMode(canvas, this.domMode);
-		return canvas;
-	},
-
-	addCanvasContainerToDOMBody: function(canvasContainer) {
-		canvasContainer = canvasContainer || this.canvasContainer;
-		if(document.body) {
-			document.body.appendChild(canvasContainer);
-		} else {
-			setTimeout(this.addCanvasContainerToDOMBody, 50);
-		}
-	},
-
-	addCanvasToContainer: function(canvas) {
-		canvas = canvas || this.canvas;
-		if(this.canvasContainer) {
-			this.canvasContainer.appendChild(canvas);
-		} else {
-			setTimeout(this.addCanvasToContainer, 50);
-		}
-	},
-
-	/**
-	 * sets the DOM Mode, which controls the css rules of the canvas element
-	 * @param {String} mode string, enumerated in DOMMode
-	 */
-	setDOMMode: function(element, mode) {
-		var style = element.style;
-		switch(mode) {
-			case DOMMode.FULLSCREEN:
-				style.position = "fixed";
-				style.left = "0px";
-				style.top = "0px";
-				style.width = window.innerWidth;
-				style.height = window.innerHeight;
-				break;
-			default:
-		}
-	},
-
-	setSize: function(w, h) {
-		this.canvas.style.width = w;
-		this.canvas.style.height = h;
-		this.camera.aspect = w/h;
-		if(this.camera.setLens) this.camera.setLens(w, h);
-		this.camera.updateProjectionMatrix();
-
-		this.setResolution(
-			~~(w / PerformanceTweaker.denominator), 
-			~~(h / PerformanceTweaker.denominator)
-		);
-	},
-
-	setResolution: function(w, h) {
-		this.canvas.width = w;
-		this.canvas.height = h;
-		this.renderer.setSize(w, h);
-	},
-
-	onPerformanceTweakerChangeResolution: function(dynamicScale) {
-		this.setResolution(
-			~~(window.innerWidth * dynamicScale),
-			~~(window.innerHeight * dynamicScale)
-		);
-	}
-};
-
-module.exports = View;
-},{"../utils/Events":2,"../utils/PerformanceTweaker":4,"./DOMMode":10,"./RenderManager":11,"./RenderStats":12,"lodash":15,"signals":5}],15:[function(require,module,exports){
+module.exports = Label;
+},{"lodash":11}],11:[function(require,module,exports){
 var global=self;/**
  * @license
  * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
@@ -7812,7 +7613,111 @@ var global=self;/**
   }
 }.call(this));
 
-},{}],16:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
+var enums = {
+	FULLSCREEN : "fullscreen"
+}
+
+module.exports = enums;
+},{}],13:[function(require,module,exports){
+var signals = require('signals');
+
+/**
+ * Manages render timing, pause and unpause
+ * @param {View} view the view to manage
+ */
+function RenderManager(view) {
+	
+	this.view = view;
+	this.skipFrames = 0;
+	this.skipFramesCounter = 0;
+	this.onEnterFrame = new signals.Signal();
+	this.onExitFrame = new signals.Signal();
+	this.renderLoop = this.renderLoop.bind(this);
+};
+
+RenderManager.prototype = {	
+	/**
+	 * a flag to request that the render loop stops next at the next frame
+	 * @type {Boolean}
+	 */
+	_requestStop: false,
+
+	/**
+	 * the repeating renderLoop calls itself with requestAnimationFrame to act as the render timer
+	 */
+	renderLoop : function() {
+		if(this.skipFramesCounter < this.skipFrames) {
+			this.skipFramesCounter++;
+		} else {
+			this.onEnterFrame.dispatch();
+			this.view.render();
+			this.onExitFrame.dispatch();
+			this.skipFramesCounter = 0;
+		}
+		if(!this._requestStop) requestAnimationFrame(this.renderLoop);
+	},
+
+	/**
+	 * start rendering
+	 */
+	start: function() {
+		this._requestStop = false;
+		requestAnimationFrame(this.renderLoop);
+	},
+
+	/**
+	 * stop rendering
+	 */
+	stop: function() {
+		this._requestStop = true;
+	}
+}
+
+module.exports = RenderManager;
+},{"signals":6}],14:[function(require,module,exports){
+var _renderer, stats, rendererStats;
+var RenderStats = function(renderer) {
+	_renderer = renderer;
+	stats = new Stats();
+	document.body.appendChild( stats.domElement );
+	stats.domElement.style['pointer-events'] = 'none'
+	stats.domElement.style['z-index'] = '1'
+	stats.domElement.style.position = 'absolute'
+
+	rendererStats = new THREEx.RendererStats();
+
+	rendererStats.domElement.style.position = 'absolute'
+	rendererStats.domElement.style.left = '0px'
+	rendererStats.domElement.style.bottom = '0px'
+	rendererStats.domElement.style['pointer-events'] = 'none'
+	rendererStats.domElement.style['z-index'] = '1'
+	document.body.appendChild( rendererStats.domElement );
+};
+
+var onEnterFrame = function() {
+	rendererStats.update(_renderer);
+	stats.begin();
+};
+
+var onExitFrame = function() {
+	stats.end();
+};
+
+RenderStats.prototype = {
+	onEnterFrame: onEnterFrame,
+	onExitFrame: onExitFrame
+}
+
+module.exports = RenderStats;
+},{}],15:[function(require,module,exports){
+module.exports = {
+	DOMMode : require('./DOMMode'),
+	RenderManager : require('./RenderManager'),
+	RenderStats : require('./RenderStats'),
+	View : require('./View')
+}
+},{"./DOMMode":12,"./RenderManager":13,"./RenderStats":14,"./View":16}],17:[function(require,module,exports){
 var globalize = require('globalizejs');
 var ThreejsLabel = {
 	sampleFunction: function(){
@@ -7824,7 +7729,7 @@ var ThreejsLabel = {
 };
 globalize('ThreejsLabel', ThreejsLabel);
 module.exports = ThreejsLabel;
-},{"./label":17,"./utils":8,"./view":13,"globalizejs":18}],18:[function(require,module,exports){
+},{"./label":10,"./utils":8,"./view":15,"globalizejs":18}],18:[function(require,module,exports){
 var _ = require('lodash');
 function Globalize(name, obj) {
 	if(window[name]) {
@@ -7835,73 +7740,175 @@ function Globalize(name, obj) {
 }
 
 module.exports = Globalize;
-},{"lodash":15}],17:[function(require,module,exports){
+},{"lodash":11}],16:[function(require,module,exports){
+var DOMMode = require('./DOMMode');
+var EventUtils = require('../utils/Events');
+var signals = require('signals');
+var PerformanceTweaker = require('../utils/PerformanceTweaker');
 var _ = require('lodash');
-function Label(text, properties, material, camera, bg) {
-	properties = _.assign({
-		height: 0,
-		size: .70,
-		hover: .30,
+var RenderStats = require('./RenderStats');
+/**
+ * View is the viewport canvas and the renderer
+ * @param {Object} props an object of properties to override default dehaviours
+ */
+function View(props) {
+	this.addCanvasContainerToDOMBody = this.addCanvasContainerToDOMBody.bind(this);
+	this.addCanvasToContainer = this.addCanvasToContainer.bind(this);
 
-		curveSegments: 0,
+	props = props || {};
+	this.scene = props.scene || new THREE.Scene();
+	props.rendererSettings = props.rendererSettings || {};
+	if(props.camera) {
+		this.camera = props.camera;
+	} else {
+		this.camera = new THREE.PerspectiveCamera();
+		this.scene.add(this.camera);
+		this.camera.position.z = 8.50;
+		this.camera.position.y = 8.0;
+		this.camera.lookAt(this.scene.position);
+	}
+	this.autoStartRender = props.autoStartRender !== undefined ? props.autoStartRender : true;
+	this.canvasContainerID = props.canvasContainerID || "WebGLCanvasContainer";
+	this.canvasID = props.canvasID || "WebGLCanvas";
+	this.domMode = props.domMode || DOMMode.FULLSCREEN;
+	
+	//use provided canvas or make your own
+	this.canvasContainer = document.getElementById(this.canvasContainerID) || this.createCanvasContainer();
+	this.canvas = document.getElementById(this.canvasID) || this.createCanvas();
+	this.rendererSettings = _.merge({
+		canvas: this.canvas,
+		antialias: true,
 
-		bevelThickness: .02,
-		bevelSize: .015,
-		bevelSegments: 3,
-		bevelEnabled: false,
+	}, props.rendererSettings);
 
-		font: "cranberry gin", // helvetiker, optimer, gentilis, droid sans, droid serif
-		weight: "normal", // normal bold
-		style: "normal", // normal italic
+	if( props.renderer !== undefined)
+		this.renderer = props.renderer;
+	else 
+		this.renderer = new THREE.WebGLRenderer(this.rendererSettings);
 
-		material: 0,
-		extrudeMaterial: 1
-	}, {} || properties);
+	if(this.rendererSettings.autoClear === false) this.renderer.autoClear = false;
 
+	this.renderManager = new(require('./RenderManager'))(this);
+	if(this.autoStartRender) this.renderManager.start();
 
-	var textGeo = new THREE.TextGeometry( text, properties);
+	PerformanceTweaker.onChange.add(this.onPerformanceTweakerChangeResolution.bind(this));
 
-	textGeo.computeBoundingBox();
-	textGeo.computeVertexNormals();
+	this.setupResizing();
 
-	material = material || new THREE.MeshBasicMaterial({
-		color: 0xffffff,
-		emissive: 0xffffff,
-		lights: false,
-		fog: false
-	});
-
-	var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
-
-	THREE.Mesh.call(this, textGeo, material);
-
-	this.position.x = centerOffset;
-	this.position.z = 0;
-
-	if(bg) {
-		if(bg === true) {
-			var textBounds = textGeo.boundingBox;
-			var planeWidth = textBounds.max.x - textBounds.min.x;
-			var planeHeight = textBounds.max.y - textBounds.min.y;
-			var planeGeom = new THREE.PlaneGeometry(planeWidth, planeHeight);
-			var bgMaterial = new THREE.MeshBasicMaterial({
-				color: 0xffffff,
-				emissive: 0xffffff,
-				lights: false,
-				fog: false,
-				transparent: true,
-				opacity: 0.2
-			})
-			bg = new THREE.Mesh(planeGeom, bgMaterial);
-		}
-		this.add(bg);
-		bg.position.x = textBounds.min.x + planeWidth * .5;
-		bg.position.y = textBounds.min.y + planeHeight * .5;
+	if(props.stats) {
+		this.stats = new RenderStats(this.renderer);
+		this.renderManager.onEnterFrame.add(this.stats.onEnterFrame);
+		this.renderManager.onExitFrame.add(this.stats.onExitFrame);
 	}
 }
 
-Label.prototype = Object.create(THREE.Mesh.prototype);
+View.prototype = {
+	setupResizing: function() {
+		this.onResize = new signals.Signal();
+		this.setSize = this.setSize.bind(this);
+		EventUtils.addEvent(window, "resize", function(event) {
+			this.onResize.dispatch(window.innerWidth, window.innerHeight);
+		}.bind(this));
+		this.onResize.add(this.setSize);
+		this.setSize(window.innerWidth, window.innerHeight);
 
-module.exports = Label;
-},{"lodash":15}]},{},[16])
+	},
+	/**
+	 * Renders the scene to the canvas using the renderer
+	 * @return {[type]} [description]
+	 */
+	render: function () {
+		PerformanceTweaker.update();
+		this.renderer.render(this.scene, this.camera);
+	},
+
+	/**
+	 * Creates the canvas DOM Element and appends it to the document body
+	 * @return {CanvasElement} The newly created canvas element.
+	 */
+	createCanvasContainer: function() {
+		var canvasContainer = document.createElement("div");
+		canvasContainer.id = this.canvasContainerID;
+		canvasContainer.width = window.innerWidth;
+		canvasContainer.height = window.innerHeight;
+		this.addCanvasContainerToDOMBody(canvasContainer);
+		this.setDOMMode(canvasContainer, this.domMode);
+		return canvasContainer;
+	},
+
+	createCanvas: function() {
+		var canvas = document.createElement("canvas");
+		canvas.id = this.canvasID;
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		this.addCanvasToContainer(canvas);
+		this.setDOMMode(canvas, this.domMode);
+		return canvas;
+	},
+
+	addCanvasContainerToDOMBody: function(canvasContainer) {
+		canvasContainer = canvasContainer || this.canvasContainer;
+		if(document.body) {
+			document.body.appendChild(canvasContainer);
+		} else {
+			setTimeout(this.addCanvasContainerToDOMBody, 50);
+		}
+	},
+
+	addCanvasToContainer: function(canvas) {
+		canvas = canvas || this.canvas;
+		if(this.canvasContainer) {
+			this.canvasContainer.appendChild(canvas);
+		} else {
+			setTimeout(this.addCanvasToContainer, 50);
+		}
+	},
+
+	/**
+	 * sets the DOM Mode, which controls the css rules of the canvas element
+	 * @param {String} mode string, enumerated in DOMMode
+	 */
+	setDOMMode: function(element, mode) {
+		var style = element.style;
+		switch(mode) {
+			case DOMMode.FULLSCREEN:
+				style.position = "fixed";
+				style.left = "0px";
+				style.top = "0px";
+				style.width = window.innerWidth;
+				style.height = window.innerHeight;
+				break;
+			default:
+		}
+	},
+
+	setSize: function(w, h) {
+		this.canvas.style.width = w;
+		this.canvas.style.height = h;
+		this.camera.aspect = w/h;
+		if(this.camera.setLens) this.camera.setLens(w, h);
+		this.camera.updateProjectionMatrix();
+
+		this.setResolution(
+			~~(w / PerformanceTweaker.denominator), 
+			~~(h / PerformanceTweaker.denominator)
+		);
+	},
+
+	setResolution: function(w, h) {
+		this.canvas.width = w;
+		this.canvas.height = h;
+		this.renderer.setSize(w, h);
+	},
+
+	onPerformanceTweakerChangeResolution: function(dynamicScale) {
+		this.setResolution(
+			~~(window.innerWidth * dynamicScale),
+			~~(window.innerHeight * dynamicScale)
+		);
+	}
+};
+
+module.exports = View;
+},{"../utils/Events":2,"../utils/PerformanceTweaker":5,"./DOMMode":12,"./RenderManager":13,"./RenderStats":14,"lodash":11,"signals":6}]},{},[17])
 ;
