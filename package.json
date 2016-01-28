@@ -18,17 +18,12 @@
     "node": ">= 0.8.0"
   },
   "dependencies": {
-    "globalizejs": "0.0.1",
-    "grunt-open": "^0.2.3",
-    "lodash": "^2.4.1",
-    "signals": "^1.0.0"
+    "lodash.defaults": "^4.0.0",
   },
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-connect": "~0.3.0",
-    "grunt-contrib-livereload": "~0.1.2",
-    "grunt-contrib-watch": "~0.4.4",
-    "grunt-watchify": "~0.0.3"
+    "browserify": "^13.0.0",
+    "loadandrunscripts": "^2.0.1",
+    "threejs-managed-view": "^4.0.3"
   },
   "peerDependencies": {
     "grunt": "~0.4.1"

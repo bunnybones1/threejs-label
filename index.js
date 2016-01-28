@@ -1,14 +1,15 @@
-var _ = require('lodash');
+var defaults = require('lodash.defaults');
 function Label(text, properties) {
-	properties = _.assign({
+	properties = properties || {};
+	properties = defaults(properties, {
 		height: 0,
-		size: .70,
-		hover: .30,
+		size: 16,
+		hover: 0.30,
 
 		curveSegments: 0,
 
-		bevelThickness: .02,
-		bevelSize: .015,
+		bevelThickness: 0.02,
+		bevelSize: 0.015,
 		bevelSegments: 3,
 		bevelEnabled: false,
 
@@ -21,7 +22,7 @@ function Label(text, properties) {
 		extrudeMaterial: 1,
 		alignX: 0.5,
 		alignY: 0.5
-	}, properties || {});
+	});
 
 
 	if(!properties.material) {
@@ -30,7 +31,7 @@ function Label(text, properties) {
 			emissive: 0xffffff,
 			lights: false,
 			fog: false,
-			wireframe: true
+			// wireframe: true
 		});
 	}
 
@@ -72,6 +73,7 @@ function Label(text, properties) {
 			var textGeo = new THREE.TextGeometry(value, properties);
 			this.textMesh = new THREE.Mesh(textGeo, properties.material);
 			this.add(this.textMesh);
+			this.textMesh.rotation.x = Math.PI;
 			textGeo.computeBoundingBox();
 			textGeo.computeVertexNormals();
 			generateBG.call(this);

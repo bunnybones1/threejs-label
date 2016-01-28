@@ -101,6 +101,7 @@ function SampleExample() {
 		light.position.copy(centerOfMass);
 		// view.camera.lookAt(centerOfMass);
 		label.position.copy(centerOfMass);
+		label.text = 'Test:' + Math.random();
     	//label.lookAt(view.camera.position);
 	})
 }
