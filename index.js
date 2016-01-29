@@ -5,6 +5,7 @@ function Label(text, properties) {
 		height: 0,
 		size: 16,
 		hover: 0.30,
+		color: 0xffffff,
 
 		curveSegments: 0,
 
@@ -27,8 +28,7 @@ function Label(text, properties) {
 
 	if(!properties.material) {
 		properties.material = new THREE.MeshBasicMaterial({
-			color: 0xffffff,
-			emissive: 0xffffff,
+			color: properties.color,
 			lights: false,
 			fog: false,
 			// wireframe: true
