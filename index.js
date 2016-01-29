@@ -49,7 +49,6 @@ function Label(text, properties) {
 	function generateBG() {
 		if(properties.bg) {
 			var textBounds = this.textMesh.geometry.boundingBox.clone();
-			var halfHeightOfText = textBounds.size().y * 0.5;
 			textBounds.expandByScalar(properties.bgMargin);
 			var size = textBounds.size();
 			if(properties.bg === true) {
